@@ -40,7 +40,8 @@ html,body{margin:0;height:100%;position:fixed;inset:0;overscroll-behavior:none;-
 #card .stars i.off{color:#cbbfa8;text-shadow:none}
 #card .v{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:17px;line-height:1.35;margin:6px 0 2px;color:#2b1a10}
 #card .ref{font-weight:bold;color:#7a4a12;font-size:15px;margin-bottom:10px}
-#card .kjv{font-size:11px;color:#8a7a62;letter-spacing:1px}
+#card .ver{font-size:11px;color:#8a7a62;letter-spacing:1px}
+#card .credit{font-size:9px;line-height:1.25;color:#8a7a62;margin:8px auto 0;max-width:440px}
 #card .row{display:flex;gap:12px;justify-content:center}
 #card .btn{position:static}
 #fade{position:fixed;inset:0;background:#000;opacity:1;z-index:8;pointer-events:auto;transition:opacity .5s ease}
@@ -197,12 +198,15 @@ let fading=true;
 function fadeIn(){FADE.style.opacity='0';setTimeout(()=>{fading=false;FADE.style.pointerEvents='none'},500)}
 function go(S,arg){if(fading&&G.scene)return;fading=true;FADE.style.pointerEvents='auto';FADE.style.opacity='1';hideCard();
  setTimeout(()=>{try{clearUI();G.fx=[];G.keys={};G.ptr.down=false;G.scene=S(arg);G.scene.t=0;G.scene.init&&G.scene.init()}catch(e){window.__showErr&&__showErr(e.message);console.error(e)}fadeIn()},G.scene?500:50)}
-// level-complete card with KJV verse
+// level-complete card with NIrV verse
+const NIRV_NOTICE='Scripture quotations taken from The Holy Bible, New International Reader\'s Version®, NIrV® Copyright © 1995, 1996, 1998, 2014 by Biblica, Inc.® Used by permission. All rights reserved worldwide.';
 function stars(n){let s='';for(let i=0;i<3;i++)s+='<i class="'+(i<n?'':'off')+'" style="animation-delay:'+(.25+i*.18)+'s">★</i>';return s}
 function card(o){const inn=CARD.querySelector('.in');inn.innerHTML=(o.title?'<h2>'+o.title+'</h2>':'')+(o.stars!=null?'<div class="stars">'+stars(o.stars)+'</div>':'')+(o.sub?'<div style="font-weight:bold;font-size:14px;color:#5a4a3a">'+o.sub+'</div>':'')+
- '<div class="v">“'+o.verse+'”</div><div class="ref">'+o.ref+' <span class="kjv">KJV</span></div><div class="row"></div>';
+ '<div class="v">“'+o.verse+'”</div><div class="ref">'+o.ref+' <span class="ver">(NIrV)</span></div><div class="row"></div>'+(o.credit?'<div class="credit">'+o.credit+'</div>':'');
  const row=inn.querySelector('.row');(o.btns||[]).forEach((b,i)=>{const e=btn(b.label,b.cls||'green',{},()=>{if(fading)return;b.fn()});row.appendChild(e)});
- cap('');CARD.classList.add('on');G.paused=true;Snd.play(o.sfx||'win');if(G.auto&&o.btns&&o.btns.length){const b=o.btns[o.btns.length-1];setTimeout(()=>{if(CARD.classList.contains('on'))b.fn()},1500)}}
+ cap('');CARD.classList.add('on');fitCard(inn);G.paused=true;Snd.play(o.sfx||'win');if(G.auto&&o.btns&&o.btns.length){const b=o.btns[o.btns.length-1];setTimeout(()=>{if(CARD.classList.contains('on'))b.fn()},1500)}}
+function fitCard(inn){const v=inn.querySelector('.v');if(!v)return;let f=parseFloat(getComputedStyle(v).fontSize);v.style.fontSize='';f=parseFloat(getComputedStyle(v).fontSize);while(inn.scrollHeight>inn.clientHeight+1&&f>10.5){f-=.5;v.style.fontSize=f+'px';v.style.lineHeight='1.28'}}
+addEventListener('resize',()=>{if(CARD.classList.contains('on'))fitCard(CARD.querySelector('.in'))});
 function hideCard(){CARD.classList.remove('on');G.paused=false}
 function levelDone(i,starsN,dl){const L=LEVELS[i];const best=+(store.get(GAME_ID+'S'+i)||0);if(starsN>best)store.set(GAME_ID+'S'+i,starsN);
  const un=+(store.get(GAME_ID+'Unl')||0);if(i+1>un)store.set(GAME_ID+'Unl',i+1);
@@ -410,7 +414,7 @@ function FinaleScene2(){const S={name:'finale',n:0,fly:[],
  fpos(i){return[G.W*(.1+i*.1),i%2?82:100]},
  tap(x,y){if(this.done)return;for(let i=0;i<9;i++){if(this.fly.some(f=>f.i===i))continue;const [fx0,fy0]=this.fpos(i);if(Math.abs(x-fx0)<16&&Math.abs(y-fy0)<18){this.fly.push({i,k:0});this.n++;Snd.play('chime');floatTxt(NINE[i][1],fx0,fy0-18);this.upd();if(this.n===2)cap('');
    if(this.n>=9){this.done=.01;setTimeout(()=>{if(G.scene===this){fullBurst();cap('Love, joy, peace, patience, kindness, goodness, faithfulness, gentleness, self-control!')}},900);
-    setTimeout(()=>{if(G.scene===this)card({title:'The orchard is full! 🧺',sub:'You finished Fruit of the Spirit Orchard!',verse:'But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, Meekness, temperance: against such there is no law.',ref:'Galatians 5:22-23',btns:[{label:'🏠 Home',cls:'cream',fn:()=>go(TitleScene)},{label:'↻ Play Again',cls:'green',fn:()=>go(LEVELS[0].intro)}],sfx:'fanfare'})},6500)}return}}},
+    setTimeout(()=>{if(G.scene===this)card({title:'The orchard is full! 🧺',sub:'You finished Fruit of the Spirit Orchard!',verse:'But the fruit the Holy Spirit produces is love, joy and peace. It is being patient, kind and good. It is being faithful and gentle and having control of oneself. There is no law against things of that kind.',ref:'Galatians 5:22-23',btns:[{label:'🏠 Home',cls:'cream',fn:()=>go(TitleScene)},{label:'↻ Play Again',cls:'green',fn:()=>go(LEVELS[0].intro)}],credit:NIRV_NOTICE,sfx:'fanfare'})},6500)}return}}},
  update(dt){this.fly.forEach(f=>f.k=Math.min(1,f.k+dt*1.8));if(this.done){this.done+=dt;if(this.done>.9&&this.done<4)celebrate(dt)}},
  auto(dt){this.ac=(this.ac||0)+dt;if(this.ac<.6)return;this.ac=0;for(let i=0;i<9;i++)if(!this.fly.some(f=>f.i===i)){const [x,y]=this.fpos(i);this.tap(x,y);break}},
  draw(){const t=this.t;bgAt('bg_bloom');motes(t,'#ffd0e0');const bx=G.W/2,by=176,full=this.done?ease(clamp((this.done-.6)/.8,0,1)):0;
@@ -422,20 +426,20 @@ function FinaleScene2(){const S={name:'finale',n:0,fly:[],
 // ---------- STORY ----------
 const pg=(text,drawFn)=>({text,draw:drawFn});
 const LEVELS=[
- {name:'Love',scene:LoveScene,ref:'1 John 4:19',done:'Love brought the lamb home!',verse:'We love him, because he first loved us.',
+ {name:'Love',scene:LoveScene,ref:'1 John 4:19',done:'Love brought the lamb home!',verse:'We love because he loved us first.',
   intro:()=>Story([pg('Welcome to the orchard! Seven trees are waiting to grow the fruit of the Spirit.',t=>{RIPE=[0,0,0,0,0,0,0];orchard(t,-1,0);D.spr('girl',G.W*.3,174,58,{});D.spr('boy',G.W*.7,174,60,{f:-1});D.vig(.3)}),
    pg('Oh no! A little lamb is lost, far from its mother. Love helps the lost find home.',t=>{orchard(t,-1,0);D.spr('lamb',G.W*.15,170,30,{f:-1,sy:1+Math.sin(t*5)*.03});D.spr('sheep',G.W*.88,170,50,{});D.spr('girl',G.W*.32,174,56,{});D.vig(.3)})],LoveScene)},
- {name:'Joy',scene:JoyScene,ref:'Psalms 118:24',done:'A song of joy!',verse:'This is the day which the LORD hath made; we will rejoice and be glad in it.',
+ {name:'Joy',scene:JoyScene,ref:'Psalms 118:24',done:'A song of joy!',verse:'The Lord has done it on this day. Let us be joyful today and be glad.',
   intro:()=>Story([pg('Harvest time! Joy makes us want to sing. Catch the oranges to the happy beat!',t=>{ensure(1);orchard(t,-1,0);D.spr('girl',G.W*.08,170,52,{sy:1+Math.abs(Math.sin(t*6))*.03});D.spr('boy',G.W*.93,170,54,{f:-1});[0,1,2].forEach(i=>D.spr('basket',G.W*(.28+i*.22),166,26,{}));D.spr('orange',G.W*.5,70+((t*60)%80),14,{ay:.5});D.vig(.3)})],JoyScene)},
- {name:'Peace',scene:PeaceScene,ref:'Mark 4:39',done:'A great calm!',verse:'And he arose, and rebuked the wind, and said unto the sea, Peace, be still. And the wind ceased, and there was a great calm.',
+ {name:'Peace',scene:PeaceScene,ref:'Mark 4:39',done:'A great calm!',verse:'He got up and ordered the wind to stop. He said to the waves, “Quiet! Be still!” Then the wind died down. And it was completely calm.',
   intro:()=>Story([pg('A storm blows over the orchard pond. Jesus once told a stormy sea: “Peace, be still.”',t=>{ensure(2);bgAt('bg_pond');D.tint('#1a2a4a',.5);for(let i=0;i<3;i++)D.spr('cloud',((i*.37+t*.02)%1.2-.1)*G.W,52+(i%2)*10,40,{ay:.5});X.save();X.globalAlpha=.6;for(let i=0;i<24;i++)D.spr('drop',(i*53+t*-60)%(G.W+40)+20,(i*37+t*180)%190-10,5,{ay:.5,rot:.3});X.restore();D.spr('boy',G.W*.1,172,52,{});D.vig(.3)})],PeaceScene)},
- {name:'Patience',scene:PatienceScene,ref:'Galatians 6:9',done:'Worth the wait!',verse:'And let us not be weary in well doing: for in due season we shall reap, if we faint not.',
+ {name:'Patience',scene:PatienceScene,ref:'Galatians 6:9',done:'Worth the wait!',verse:'Let us not become tired of doing good. At the right time we will gather a crop if we don’t give up.',
   intro:()=>Story([pg('Green pears are hard and sour. Patience means waiting until they turn golden and sweet.',t=>{ensure(3);bgAt('bg_orchard',1,{zr:1});const k=clamp((t%5)/3,0,1);D.spr('pear0',G.W*.44,80,30,{ay:.5});D.spr('pear1',G.W*.56,80,30,{ay:.5,a:.3+.7*k});D.spr('pear0',G.W*.56,80,30,{ay:.5,a:.7-.7*k});glowDot(G.W*.56,80,20,'rgba(255,240,150,.6)',k);D.spr('girl',G.W*.1,176,56,{});D.vig(.3)})],PatienceScene)},
- {name:'Kindness & Goodness',scene:KindScene,ref:'Ephesians 4:32',done:'Kind and good!',verse:'And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ’s sake hath forgiven you.',
+ {name:'Kindness & Goodness',scene:KindScene,ref:'Ephesians 4:32',done:'Kind and good!',verse:'Be kind and tender to one another. Forgive one another, just as God forgave you because of what Christ has done.',
   intro:()=>Story([pg('The cherries are ready to share! Kindness and goodness help neighbors in need.',t=>{ensure(4);bgAt('bg_village');D.spr('boy',G.W*.09,172,54,{});D.spr('basketfull',G.W*.15,174,24,{});VILL.forEach(([n,u,gy,h])=>D.spr(n,G.W*u,gy,h,{f:n==='farmer'?-1:1}));D.vig(.3)})],KindScene)},
- {name:'Faithfulness',scene:FaithScene,ref:'Lamentations 3:22-23',done:'Faithful every day!',verse:'It is of the LORD’S mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.',
+ {name:'Faithfulness',scene:FaithScene,ref:'Lamentations 3:22-23',done:'Faithful every day!',verse:'The Lord loves us very much. So we haven’t been completely destroyed. His loving concern never fails. His great love is new every morning. Lord, how faithful you are!',
   intro:()=>Story([pg('Trees need water every single day. Being faithful means keeping on, day after day.',t=>{ensure(5);const r=orchard(t,-1,0);const x=r.x+TREES[5]*r.w,y=r.y+TV*r.h;D.spr('can',x+16,y-30,22,{ay:.5,rot:-.5});for(let j=0;j<3;j++)D.spr('drop',x+4-j*4,y-22+((t*40+j*9)%30),5,{ay:.5});D.spr('girl',G.W*.5,176,54,{});D.vig(.3)})],FaithScene)},
- {name:'Gentleness & Self-control',scene:GentleScene,ref:'Philippians 4:5',done:'Gentle and strong!',verse:'Let your moderation be known unto all men. The Lord is at hand.',
+ {name:'Gentleness & Self-control',scene:GentleScene,ref:'Philippians 4:5',done:'Gentle and strong!',verse:'Let everyone know how gentle you are. The Lord is coming soon.',
   intro:()=>Story([pg('Carry the eggs gently over the bumpy path, and say no to the tempting candy!',t=>{ensure(6);bgAt('bg_path');D.spr('girl',G.W*.3,168,54,{});D.spr('eggbasket',G.W*.3+13,152,24,{});D.spr('lolly',G.W*.6,110,16,{ay:.5});D.spr('candy',G.W*.72,118,12,{ay:.5});D.spr('straw',G.W*.84,124,12,{ay:.5});D.vig(.3)})],GentleScene)}
 ];
 const FinaleScene=()=>Story([pg('Every tree is full! Let’s gather all nine fruits of the Spirit into one basket.',t=>{ensure(7);bgAt('bg_bloom');motes(t,'#ffd0e0');D.spr('girl',G.W*.14,174,56,{});D.spr('boy',G.W*.86,174,58,{f:-1});D.spr('basket',G.W/2,176,44,{});D.vig(.3)})],FinaleScene2);
